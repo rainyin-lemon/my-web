@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>人生倒计时</title>
+		<link rel="preload" href="pause.png" as="image" />
+		<link rel="preload" href="play.png" as="image" />
+		<style>
+			* {
+				margin: 0;
+				padding: 0;
+				box-sizing: border-box;
+			}
+
+			body {
+				font-family: sans-serif;
+				color: white;
+				background-color: #1C1C26;
+				background-attachment: fixed;
+				background-size: 100% 100%;
+				font-family:  "Comic Sans MS", cursive ,Arial;
+			}
+
+			@media (max-width: 9999px) {
+				body {
+					min-width: 600px !important;
+				}
+
+				.mobile-menu {
+					display: none !important;
+				}
+
+				.desktop-content {
+					display: block !important;
+				}
+			}
+			p{
+				display: none;
+			}
+
+			#draggable {
+				position: fixed;
+				bottom: 25px;
+				left: 25px;
+				height: 100px;
+				width: 200px;
+				line-height: 100px;
+				text-align: center;
+				background: rgba(50, 50, 60, 0.7);
+				cursor: grab;
+				z-index: 10;
+				background-image: url('bac_mini.jpg');
+				background-attachment: fixed;
+				background-size: cover;
+				border-radius: 10px;
+				box-shadow: 0 0 10px 0 rgba(255,255,255,1); 
+				/* backface-visibility: hidden; */
+			}
+		</style>
+	</head>
+	<body>
+		<!-- 遮罩层 -->
+		<div
+			style="  position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.2); z-index: -1;">
+		</div>
+		<!-- 内容 -->
+		<div style="margin-top: 200px; text-align: center; font-size: 30px; letter-spacing: 5px;" id="line1">
+			距离2026还有249天！
+		</div>
+		<div style="margin-top: 30px; text-align: center; font-size: 26px; letter-spacing: 5px;" id="line2">
+			今天已经过去10小时 ，
+		</div>
+		<div style="margin-top: 30px; margin-bottom: 100px; text-align: center; font-size: 26px; letter-spacing: 5px;" id="line3">
+			还剩下13小时7分钟14秒 ...
+		</div>
+		<!-- 底部 -->
+		<div id="draggable" onmousedown="startDrag(event)">
+			<img src="play.png" id="music" alt="" style="width: 50px; height: 50px; vertical-align: middle; cursor: pointer">
+			<audio id="Audio" controls style="display: none;">
+				<source src="https://fs-im-kefu.7moor-fs1.com/ly/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1749128625699/bac.mp3" type="audio/mpeg">
+				您的浏览器不支持 HTML5 音频。
+			</audio>
+		</div>
+		<script>
+			// 随机图片
+			const pic = Math.floor(Math.random() * 7) + 1;
+			document.body.style.backgroundImage = `url(../imgs/bac${pic}.jpg)`;
+		</script>
+		<script>
+			const line1 = document.getElementById('line1');
+			const line2 = document.getElementById('line2');
+			const line3 = document.getElementById('line3');
+			function loopFunction() {
+				let now = new Date();
+				const hours = now.getHours();
+				const currentYear = now.getFullYear();
+			    let nextYear = new Date(now.getFullYear() + 1, 0, 1);
+			    let timeDiffToNextYear = nextYear - now;
+			    let daysToNextYear = Math.floor(timeDiffToNextYear / (1000 * 60 * 60 * 24));
+			    
+			    console.log(`距离下一年的时间天数: ${daysToNextYear} 天`);
+			    console.log(`当前小时: ${hours} 天`);
+			    
+			    // 计算距离下一天的小时、分钟、秒数
+			    let tomorrow = new Date(now);
+			    tomorrow.setDate(now.getDate() + 1);
+			    tomorrow.setHours(0, 0, 0, 0);
+			    
+			    let timeDiffToTomorrow = tomorrow - now;
+			    let hoursToTomorrow = Math.floor(timeDiffToTomorrow / (1000 * 60 * 60));
+			    let minutesToTomorrow = Math.floor((timeDiffToTomorrow % (1000 * 60 * 60)) / (1000 * 60));
+			    let secondsToTomorrow = Math.floor((timeDiffToTomorrow % (1000 * 60)) / 1000);
+			    
+			    console.log(`距离下一天的时间: ${hoursToTomorrow} 小时, ${minutesToTomorrow} 分钟, ${secondsToTomorrow} 秒`);
+				line1.textContent = `距离${currentYear+1}还有${daysToNextYear}天！`
+				line2.textContent = `今天已经过去${hours}小时 ，`
+				line3.textContent = `还剩下${hoursToTomorrow}小时${minutesToTomorrow}分钟${secondsToTomorrow}秒 ...`
+			}
+			const intervalId = setInterval(loopFunction, 1000);
+		</script>
+		<script>
+			var sta = false;
+			var audio = document.getElementById("Audio");
+			var ico_button = document.getElementById("music");
+			function playAudio(e) {
+				if(sta) {
+					sta = false;
+					audio.pause();
+					ico_button.src = "play.png"
+					console.log(11)
+				}else {
+					sta = true;
+					audio.play();
+					ico_button.src = "pause.png"
+					console.log(22)
+				}
+			
+			}
+				
+			// 为图标添加点击事件监听器
+			
+			ico_button.addEventListener("click", playAudio);
+			
+			function audioEnded() {
+			    sta = false;
+			    audio.pause();
+			    ico_button.src = "play.png"
+			}
+			audio.addEventListener("ended", audioEnded);
+		</script>
+		<script>
+			let isDragging = false;
+			let currentX;
+			let currentY;
+			let initialX;
+			let initialY;
+			let xOffset = 25;
+			let yOffset = window.innerHeight - 25 - 100;  // 这里要计算，25为botton，100为高度
+			const draggable = document.getElementById('draggable');
+
+			// 触摸事件处理，省去
+
+			// 鼠标事件处理
+			function startDrag(e) {
+				if (e.type === "touchstart") {
+					initialX = e.touches[0].clientX - xOffset;
+					initialY = e.touches[0].clientY - yOffset;
+				} else {
+					initialX = e.clientX - xOffset;
+					initialY = e.clientY - yOffset;
+				}
+
+				if (e.target === draggable) {
+					isDragging = true;
+
+					// 提升层级
+					document.addEventListener('mousemove', drag);
+					document.addEventListener('mouseup', dragEnd);
+					document.body.style.userSelect = 'none';
+				}
+			}
+
+			function drag(e) {
+				if (isDragging) {
+					e.preventDefault();
+
+					if (e.type === "touchmove") {
+						currentX = e.touches[0].clientX - initialX;
+						currentY = e.touches[0].clientY - initialY;
+					} else {
+						currentX = e.clientX - initialX;
+						currentY = e.clientY - initialY;
+					}
+					const maxX = window.innerWidth - draggable.offsetWidth;
+					const maxY = window.innerHeight - draggable.offsetHeight;
+
+					currentX = Math.min(Math.max(0, currentX), maxX);
+					currentY = Math.min(Math.max(0, currentY), maxY);
+
+					xOffset = currentX;
+					yOffset = currentY;
+
+					setTranslate(currentX, currentY, draggable);
+				}
+			}
+
+			function dragEnd(e) {
+				
+				initialX = currentX;
+				initialY = currentY;
+				isDragging = false;
+
+				// 恢复层级
+
+				// 移除事件监听
+				e.preventDefault();
+				document.removeEventListener('mousemove', drag);
+				document.removeEventListener('mouseup', dragEnd);
+
+				// 恢复文本选择
+				document.body.style.userSelect = '';
+			}
+
+			function setTranslate(xPos, yPos, el) {
+				el.style.left = xPos + "px";
+				el.style.top = yPos + "px";
+				el.style.bottom = "auto";
+			}
+		</script>
+	</body>
+</html>

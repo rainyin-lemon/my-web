@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>天气小程序</title>
+
+		<style>
+			* {
+				margin: 0;
+				padding: 0;
+				box-sizing: border-box;
+			}
+
+			body {
+				font-family: Arial, sans-serif;
+				/* color: white; */
+				background-color: #F7F9FD;
+			}
+
+			/* 顶部导航样式 */
+			.top-nav {
+				color: white;
+				padding: 0 15px;
+				height: 64px;
+				line-height: 72px;
+				position: fixed;
+				width: 100%;
+				top: 0;
+				background: linear-gradient(to right, #77B1F2, #6978EE);
+				backdrop-filter: blur(16px) brightness(0.4);
+				/* border-bottom: 1px solid rgba(255, 255, 255, 0.5); */
+				z-index: 1;
+			}
+
+			.top-nav ul {
+				display: flex;
+				list-style: none;
+				justify-content: center;
+			}
+
+			.top-nav li {
+/* 				margin-right: 25px; */
+
+			}
+
+			.top-nav .loc li {
+				/* margin-right: 25px; */
+
+			}
+
+			.top-nav a {
+				color: white;
+				text-decoration: none;
+			}
+
+			li a {
+				color: black;
+				text-decoration: none;
+			}
+
+
+			table {
+				margin: 20px auto;
+				/* 居中显示 */
+				border-collapse: collapse;
+				/* 合并边框 */
+				border-color: inherit;
+				white-space: nowrap;
+			}
+
+			th {
+				background-color: #77B1F2;
+				/* 表头背景色 */
+				padding: 12px;
+				/* 内边距 */
+				color: white;
+				border-right: none;
+				border-left: none;
+			}
+
+			td {
+				padding: 8px;
+				/* border-bottom: 1px solid #ddd; */
+				/* 底部边框 */
+				border-right: none;
+				border-left: none;
+				text-align: center;
+			}
+			p{
+				display: none;
+			}
+		</style>
+
+	</head>
+	<body>
+		<!-- 顶部导航 -->
+		<nav class="top-nav">
+			<ul style="margin: 0 auto; " class="loc">
+				<li><a href="#"
+						style="font-size: 25px; font-style:italic; font-weight: bold;"></a>
+				</li>
+				<li><a href="#" ></a></li>
+				<li><a href="#" style="margin-right: 15px; font-size: 22px;">市区</a></li>
+				<li><a href="#" style="font-size: 22px;">地区</a></li>
+			</ul>
+
+			<div style="clear: both;"></div>
+		</nav>
+
+		<div class="container">
+
+			<!-- 主体内容 -->
+			<main class="main-content">
+				<div class="weath" style="color: white; background: linear-gradient(to right,  #77B1F2, #6978EE  );">
+					<div style="height: 72px;"></div>
+					<div style="height: 225px; padding-top: 50px;  background: linear-gradient(to right,  #77B1F2, #6978EE  ); padding: 10px;"
+						class="weath_main">
+						<div style="margin-top: 15px;"></div>
+						<div style="margin-left: 15px; margin-bottom: 20px; line-height: 20px; color: #fff; font-size: 15px; opacity: 0.6" class="time_now">
+							实时天气 17:30发布
+						</div>
+						<a style="float: left; font-size: 64px; line-height: 64px; margin-left: 15px;">温度</a>
+						<a
+							style="float: left; margin-left: 10px; height: 56px; line-height: 28px; font-size: 26px;"><br>天气</a>
+						<div style="clear: both;"></div>
+						<a style="float: right; margin-right: 5px; margin-top: -75px;">
+							<img src="cloud.png" alt="" style="width: 100px; height: 100px;">
+						</a>
+
+						<div style="margin-top: 50px;"></div>
+						<div class="weath_more" style="height: 25px;">
+							<span
+								style="line-height: 25px; float: left; width: 31%; text-align: center; border-right: 2px solid white;font-size: 15px;">
+								湿度:&nbsp;70
+							</span>
+							<span
+								style="line-height: 25px; float: left; width: 31%; text-align: center; border-right: 2px solid white; font-size: 15px;">
+								风向:&nbsp;七级风
+							</span>
+							<span
+								style="line-height: 25px; float: left; width: 31%; text-align: center; font-size: 15px;">
+								风力:&nbsp;南风
+							</span>
+							<div style="clear: both;"></div>
+
+						</div>
+
+					</div>
+				</div>
+				<img src="image.png" alt="" style="width: 100%; height: 50px; display: block; margin-top: -1px;">
+
+
+
+
+
+				<div>
+					<div class="future"
+						style="float: left; margin-left:5%; width: 90%; background-color: #fff; border-radius: 16px; box-shadow: 0 0 14px 0 rgba(0, 0, 0, .08); padding: 20px; color:  #344665;">
+						<div style="font-size: 20px; margin-left: 20px;">
+							<ul>
+								<li>气温预测-白天 <a href="#"
+										style="float: left; margin-right: 0px; font-size: 15px; line-height: 30px; width: 100%;"
+										id="update">更新时间</a>
+								</li>
+
+							</ul>
+						</div>
+						<div style="overflow-x: hidden; width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;">
+							<table border="1" style="margin: 10px auto; width: 100%; height: 200px;" class="day">
+								<thead>
+									<tr>
+										<th>日期</th>
+										<th>湿度</th>
+										<th>温度</th>
+										<th>天气</th>
+										<th>风速</th>
+										<th>风向</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr>
+										<td>~</td>
+										<td>~</td>
+										<td>~</td>
+										<td>~</td>
+										<td>~</td>
+										<td>~</td>
+									</tr>
+									<tr>
+										<td>~</td>
+										<td>~</td>
+										<td>~</td>
+										<td>~</td>
+										<td>~</td>
+										<td>~</td>
+									</tr>
+									<tr>
+										<td>~</td>
+										<td>~</td>
+										<td>~</td>
+										<td>~</td>
+										<td>~</td>
+										<td>~</td>
+									</tr>
+									<tr>
+										<td>~</td>
+										<td>~</td>
+										<td>~</td>
+										<td>~</td>
+										<td>~</td>
+										<td>~</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+						<div style="font-size: 20px; margin-left: 20px;">
+							<ul>
+								<li>气温预测-夜晚</li>
+							</ul>
+						</div>
+						<div style="overflow-x: hidden; width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;">
+							<table border="1" style="margin: 10px auto; width: 100%; height: 200px;" class="night">
+								<thead>
+									<tr>
+										<th>日期</th>
+										<th>湿度</th>
+										<th>温度</th>
+										<th>天气</th>
+										<th>风速</th>
+										<th>风向</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr>
+										<td>~</td>
+										<td>~</td>
+										<td>~</td>
+										<td>~</td>
+										<td>~</td>
+										<td>~</td>
+									</tr>
+									<tr>
+										<td>~</td>
+										<td>~</td>
+										<td>~</td>
+										<td>~</td>
+										<td>~</td>
+										<td>~</td>
+									</tr>
+									<tr>
+										<td>~</td>
+										<td>~</td>
+										<td>~</td>
+										<td>~</td>
+										<td>~</td>
+										<td>~</td>
+									</tr>
+									<tr>
+										<td>~</td>
+										<td>~</td>
+										<td>~</td>
+										<td>~</td>
+										<td>~</td>
+										<td>~</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+					<div class="future2"
+						style="float: left; margin-left:4%; margin-top:30px; width: 90%; background-color: #fff; border-radius: 16px; box-shadow: 0 0 14px 0 rgba(0, 0, 0, .08); padding: 20px; color:  #344665;;">
+						<div style="font-size: 20px; margin-left: 20px;">
+							<ul>
+								<li style="line-height: 30px;">下雨景色</li>
+							</ul>
+						</div>
+						<div style="margin-top: 10px; overflow: hidden;">
+							<iframe src="rain.html" frameborder="0" loading="lazy"
+								style="width: 100%; height: 185px; transform: scale(1.0);" allowfullscreen
+								id="my-iframe"></iframe>
+						</div>
+					</div>
+					<div 
+						style="float: left; margin-left:4%; margin-top:30px; width: 90%; background-color: #fff; border-radius: 16px; box-shadow: 0 0 14px 0 rgba(0, 0, 0, .08); padding: 20px; color:  #344665;;">
+						<div style="font-size: 20px; margin-left: 20px;">
+							<ul>
+								<li style="line-height: 30px;">天气查询小程序</li>
+							</ul>
+					
+						</div>
+						<div style="margin-top: 10px; overflow: hidden; padding: 5px 15px;">
+							闲暇之余的一个小作品~
+						</div>
+						<div style="float: right; width: 100%; text-align: right;">- rainyin</div>
+					</div>
+					<div style="clear: both;"></div>
+					<div style="height: 200px;"></div>
+				</div>
+			</main>
+		</div>
+		<script>
+			// 数据渲染函数
+			function change_main(data) {
+				const update_time_now = document.querySelectorAll('.time_now');
+				split_array = data.realtime[0].update_time.split(/\s+/)  //时间分隔
+				update_time_now[0].textContent = "实时天气 " + split_array.slice(-1) + "发布";
+				
+				const all_loc = document.querySelectorAll('.loc li a');
+				// all_loc[1].textContent = data.realtime[0].province;
+				all_loc[2].textContent = data.realtime[0].city;
+				all_loc[3].textContent = data.realtime[0].district;
+
+				const main_weath = document.querySelectorAll('.weath_main a');
+				main_weath[0].textContent = data.realtime[0].infos.temperature + "°";
+				main_weath[1].innerHTML = "<br>" + data.realtime[0].infos.weather;
+
+				const more_weath = document.querySelectorAll('.weath_more span');
+				more_weath[0].innerHTML = "湿度&nbsp;" + data.realtime[0].infos.humidity + "%";
+
+				more_weath[1].innerHTML = "风向&nbsp;" + data.realtime[0].infos.wind_direction;
+				more_weath[2].innerHTML = "风力&nbsp;" + data.realtime[0].infos.wind_power;
+			}
+
+			function change_fore(data) {
+				const timeElement = document.getElementById('update');
+				const dayTbody = document.querySelector('.day tbody');
+				const nightTbody = document.querySelector('.night tbody');
+				timeElement.innerText = "更新时间：" + data.forecast[0].update_time;
+				dayTbody.innerHTML = '';
+				nightTbody.innerHTML = '';
+				for (let i = 0; i < data.forecast[0].infos.length; i++) {
+					const info = data.forecast[0].infos[i];
+
+					// 白天表格行
+					const dayTr = document.createElement('tr');
+					dayTr.innerHTML = `
+			    <td>${info.date}</td>
+			    <td>${info.day.humidity}%</td>
+			    <td>${info.day.temperature}℃</td>
+			    <td>${info.day.weather}</td>
+			    <td>${info.day.wind_power}</td>
+			    <td>${info.day.wind_direction}</td>
+			  `;
+					dayTbody.appendChild(dayTr);
+
+					// 夜晚表格行
+					const nightTr = document.createElement('tr');
+					nightTr.innerHTML = `
+			    <td>${info.date}</td>
+			    <td>${info.night.humidity}%</td>
+			    <td>${info.night.temperature}℃</td>
+			    <td>${info.night.weather}</td>
+			    <td>${info.night.wind_power}</td>
+			    <td>${info.night.wind_direction}</td>
+			  `;
+					nightTbody.appendChild(nightTr);
+				}
+
+			}
+		</script>
+<!-- 		<script>
+			// 全屏代码
+			function full_screen() {
+				const iframe = document.getElementById("my-iframe");
+				if (iframe.requestFullscreen) {
+					iframe.requestFullscreen();
+				} else if (iframe.mozRequestFullScreen) {
+					iframe.mozRequestFullScreen();
+				} else if (iframe.webkitRequestFullscreen) {
+					iframe.webkitRequestFullscreen();
+				} else if (iframe.msRequestFullscreen) {
+					iframe.msRequestFullscreen();
+				}
+			}
+			document.getElementById('full').onclick = full_screen;
+		</script> -->
+
+		<script>
+			// 网络请求
+			var local_url = "https://apis.map.qq.com/ws/location/v1/ip?key=LLNBZ-I26CH-C2FDU-WCZE2-67AC6-LUBKC"
+			var weath_url = "https://apis.map.qq.com/ws/location/v1/ip?key=LLNBZ-I26CH-C2FDU-WCZE2-67AC6-LUBKC"
+			var loc_code = 110000;
+			var weather;
+			var todayweather;
+
+			// 定义JSONP回调函数
+			function handleLocation(data) {
+				if (data.status === 0) {
+					console.log('定位成功:');
+					var loc_data = data.result;
+					loc_code = loc_data.ad_info.adcode;
+					console.log(loc_code)
+					setTimeout("getweather()", 1200);  // 延时减少并发
+					gettodayweather()
+				} else {
+					console.error('定位失败:', data.message);
+				}
+			}
+
+			function handleweather(data) {
+				if (data.status === 0) {
+					console.log('成功获取未来天气');
+					weather = data.result;
+					console.log(weather);
+					change_fore(weather);
+				} else {
+					console.error('未来天气获取失败:', data.message);
+				}
+			}
+
+			function handletodayweather(data) {
+				if (data.status === 0) {
+					console.log('成功获取实时天气');
+					todayweather = data.result;
+					console.log(todayweather)
+					change_main(todayweather);
+				} else {
+					console.error('实时天气获取失败:', data.message);
+				}
+			}
+			// 动态创建script标签发起请求
+			function getLocation() {
+				const key = 'LLNBZ-I26CH-C2FDU-WCZE2-67AC6-LUBKC';
+				const callback = 'handleLocation';
+				const script = document.createElement('script');
+
+				script.src = `https://apis.map.qq.com/ws/location/v1/ip?key=${key}&output=jsonp&callback=${callback}`;
+				document.head.appendChild(script);
+
+				// 超时处理
+				setTimeout(() => {
+					if (!window[callback]) {
+						console.error('位置请求超时');
+						document.head.removeChild(script);
+					}
+				}, 5000);
+			}
+
+			function getweather() {
+				const key = 'LLNBZ-I26CH-C2FDU-WCZE2-67AC6-LUBKC';
+				const callback = 'handleweather';
+				const script = document.createElement('script');
+
+				script.src =
+					`https://apis.map.qq.com/ws/weather/v1/?key=${key}&adcode=${loc_code}&type=future&output=jsonp&callback=${callback}`;
+				document.head.appendChild(script);
+
+				// 超时处理
+				setTimeout(() => {
+					if (!window[callback]) {
+						console.error('未来天气请求超时');
+						document.head.removeChild(script);
+					}
+				}, 5000);
+			}
+
+			function gettodayweather() {
+				const key = 'LLNBZ-I26CH-C2FDU-WCZE2-67AC6-LUBKC';
+				const callback = 'handletodayweather';
+				const script = document.createElement('script');
+
+				script.src =
+					`https://apis.map.qq.com/ws/weather/v1/?key=${key}&adcode=${loc_code}&type=now&output=jsonp&callback=${callback}`;
+				document.head.appendChild(script);
+
+				// 超时处理
+				setTimeout(() => {
+					if (!window[callback]) {
+						console.error('实时天气请求超时');
+						document.head.removeChild(script);
+					}
+				}, 5000);
+			}
+			// 获取数据并渲染
+			getLocation();
+		</script>
+	</body>
+</html>
