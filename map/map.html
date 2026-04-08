@@ -215,7 +215,7 @@
 						const lat = position.coords.latitude;
 						const lng = position.coords.longitude;
 						const newdata = wgs84ToGcj02(lat, lng)
-						const pos = new TMap.LatLng(keep3Dec(newdata.lat), keep3Dec(newdata.lng));
+						const pos = new TMap.LatLng(newdata.lat, newdata.lng);
 						alert("纬度" + newdata.lat + "，经度" + newdata.lng);
 
 
