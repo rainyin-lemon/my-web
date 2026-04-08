@@ -164,7 +164,7 @@
 			function device() {
 				// ========== 核心：判断是否非电脑设备 ==========
 				const isMobile = /Mobile|Android|iPhone|iPad|iPod|Tablet/i.test(navigator.userAgent);
-				if(isMobile){
+				if (isMobile) {
 					map.setViewMode('2D');
 					map.setPitch(0);
 					map.setRotation(0);
@@ -184,14 +184,14 @@
 						// features: ['base']
 					}
 				});
-				
+
 
 				// 定位按钮点击事件
 				document.getElementById('locate-btn').onclick = getLocation;
 				document.getElementById('locate-btn2').onclick = change_map;
 				// 判断设备
 				device()
-				
+
 				// 自动尝试定位
 				// getLocation();
 			}
@@ -215,14 +215,14 @@
 						const lat = position.coords.latitude;
 						const lng = position.coords.longitude;
 						const newdata = wgs84ToGcj02(lat, lng)
-						const pos = new TMap.LatLng(newdata.lat, newdata.lng);
+						const pos = new TMap.LatLng(keep3Dec(newdata.lat), keep3Dec(newdata.lng));
 						alert("纬度" + newdata.lat + "，经度" + newdata.lng);
 
 
 						// 移动地图到定位位置
 						map.setCenter(pos);
 						map.setZoom(18);
-						map.setRotation(0);  // 旋转角度
+						map.setRotation(0); // 旋转角度
 						map.setPitch(0);
 
 						// 清除旧标记
@@ -242,6 +242,12 @@
 					// 失败回调
 					() => {
 						alert("获取位置失败");
+					},
+					// 这里就是开启高精度定位
+					{
+						enableHighAccuracy: true,
+						timeout: Infinity,
+						maximumAge: 0
 					}
 				);
 			}
