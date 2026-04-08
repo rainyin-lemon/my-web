@@ -36,6 +36,8 @@
 				z-index: 1000;
 				border: none;
 				outline: none;
+				user-select: none;
+				font-size: 18px;
 			}
 
 			#locate-btn2 {
@@ -55,6 +57,8 @@
 				border: none;
 				outline: none;
 				color: blue;
+				user-select: none;
+				font-size: 18px;
 			}
 
 
@@ -73,7 +77,7 @@
 
 		<div id="container"></div>
 		<button id="locate-btn2" title="切换图层">⇆</button>
-		<button id="locate-btn" title="定位">🚩</button>
+		<button id="locate-btn" title="定位">📍</button>
 
 		<script>
 			/**
@@ -157,6 +161,15 @@
 			}
 		</script>
 		<script>
+			function device() {
+				// ========== 核心：判断是否非电脑设备 ==========
+				const isMobile = /Mobile|Android|iPhone|iPad|iPod|Tablet/i.test(navigator.userAgent);
+				if(isMobile){
+					map.setViewMode('2D');
+					map.setPitch(0);
+					map.setRotation(0);
+				}
+			}
 			let map, marker;
 
 			// 初始化地图
@@ -171,13 +184,16 @@
 						// features: ['base']
 					}
 				});
+				
 
 				// 定位按钮点击事件
 				document.getElementById('locate-btn').onclick = getLocation;
 				document.getElementById('locate-btn2').onclick = change_map;
-
+				// 判断设备
+				device()
+				
 				// 自动尝试定位
-				getLocation();
+				// getLocation();
 			}
 
 			// 获取位置
@@ -200,6 +216,7 @@
 						const lng = position.coords.longitude;
 						const newdata = wgs84ToGcj02(lat, lng)
 						const pos = new TMap.LatLng(newdata.lat, newdata.lng);
+						alert("纬度" + newdata.lat + "，经度" + newdata.lng);
 
 
 						// 移动地图到定位位置
