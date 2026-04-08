@@ -36,7 +36,8 @@
 				z-index: 1000;
 				border: none;
 				outline: none;
-				user-select: none;
+				-webkit-tap-highlight-color: transparent !important;
+				-webkit-tap-highlight-color: rgba(0,0,0,0);
 				font-size: 18px;
 			}
 
@@ -57,7 +58,8 @@
 				border: none;
 				outline: none;
 				color: blue;
-				user-select: none;
+				-webkit-tap-highlight-color: transparent !important;
+				-webkit-tap-highlight-color: rgba(0,0,0,0);
 				font-size: 18px;
 			}
 
@@ -243,12 +245,6 @@
 					() => {
 						alert("获取位置失败");
 					},
-					// 这里就是开启高精度定位
-					{
-						enableHighAccuracy: true,
-						timeout: Infinity,
-						maximumAge: 0
-					}
 				);
 			}
 
