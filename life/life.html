@@ -22,7 +22,7 @@
 				font-family:  "Comic Sans MS", cursive ,Arial;
 			}
 
-			@media (max-width: 9999px) {
+/* 			@media (max-width: 9999px) {
 				body {
 					min-width: 600px !important;
 				}
@@ -34,7 +34,7 @@
 				.desktop-content {
 					display: block !important;
 				}
-			}
+			} */
 			p{
 				display: none;
 			}
@@ -78,7 +78,7 @@
 		<div id="draggable" onmousedown="startDrag(event)">
 			<img src="play.png" id="music" alt="" style="width: 50px; height: 50px; vertical-align: middle; cursor: pointer">
 			<audio id="Audio" controls style="display: none;">
-				<source src="https://fs-im-kefu.7moor-fs1.com/ly/4d2c3f00-7d4c-11e5-af15-41bf63ae4ea0/1749128625699/bac.mp3" type="audio/mpeg">
+				<source src="../music/music1.mp3" type="audio/mpeg">
 				您的浏览器不支持 HTML5 音频。
 			</audio>
 		</div>
@@ -129,11 +129,13 @@
 					audio.pause();
 					ico_button.src = "play.png"
 					console.log(11)
+					audio.volume = 0.4;
 				}else {
 					sta = true;
 					audio.play();
 					ico_button.src = "pause.png"
 					console.log(22)
+					audio.volume = 0.4;
 				}
 			
 			}
