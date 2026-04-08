@@ -204,7 +204,9 @@
 
 						// 移动地图到定位位置
 						map.setCenter(pos);
-						map.setZoom(15);
+						map.setZoom(18);
+						map.setRotation(0);  // 旋转角度
+						map.setPitch(0);
 
 						// 清除旧标记
 						if (marker) {
