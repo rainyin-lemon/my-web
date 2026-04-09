@@ -425,21 +425,34 @@
 		</script>
 		<script>
 			layui.use(['carousel', 'jquery'], function() {
-			    var carousel = layui.carousel;
-			    $(document).ready(function() {
-			        carousel.render({
-			            elem: '#ID-carousel-demo-image',
-			            width: '100%',
-			            height: '490px',
-			            interval: 3000,
-			            arrow: 'none',
-			            indicator: 'none',
-			            anim: 'default',
-			            autoplay: true  // 修正：改为布尔值 true
-			        });
-			    });
+			var carousel = layui.carousel;
+			// 移动端不同的渲染逻辑
+			const isMobile = /Mobile|Android|iPhone|iPad|iPod|Tablet/i.test(navigator.userAgent);
+			if (isMobile) {
+				carousel.render({
+					elem: '#ID-carousel-demo-image',
+					width: '100%',
+					height: '490px',
+					interval: 3000,
+					arrow: 'none',
+					indicator: 'none',
+					anim: 'fade',
+					autoplay: true // 修正：改为布尔值 true
+				});
+			} else {
+				carousel.render({
+					elem: '#ID-carousel-demo-image',
+					width: '100%',
+					height: '490px',
+					interval: 3000,
+					arrow: 'none',
+					indicator: 'none',
+					anim: 'default',
+					autoplay: true // 修正：改为布尔值 true
+				});
+			}
 			});
-
+			// 向下滚动
 			$(".enter").click(function() {
 				$("html, body").animate({
 					scrollTop: "+=450px"
