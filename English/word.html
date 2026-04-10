@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英语词汇表 - 多词库切换版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+    
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #fff;
+            background: #141635;
+            padding: 20px;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* 右上角悬浮按钮 */
+        .float-btn {
+            position: fixed;
+            top: 40px;
+            right: 20px;
+            z-index: 9999;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.08);
+			backdrop-filter: blur(10px);
+			-webkit-backdrop-filter: blur(10px);
+			/* 白色边框 */
+			border: 1px solid rgba(255, 255, 255, 0.3);
+			color: white;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transition: all 0.2s ease;
+        }
+        .float-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+        }
+    
+        /* 轻量静态星空 → 无动画、无闪烁、极低渲染 */
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background-image: 
+                radial-gradient(2px 2px at 20px 30px, white, transparent),
+                radial-gradient(2px 2px at 40px 70px, white, transparent),
+                radial-gradient(1px 1px at 50px 150px, white, transparent),
+                radial-gradient(1px 1px at 90px 40px, white, transparent),
+                radial-gradient(2px 2px at 130px 80px, white, transparent);
+            background-size: 200px 200px;
+            opacity: 0.4;
+        }
+    
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            box-shadow: none;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+            z-index: 1;
+        }
+    
+        header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+    
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+    
+        .stats {
+            font-size: 1.1rem;
+            opacity: 0.95;
+        }
+    
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: rgba(255,255,255,0.05);
+            flex-wrap: wrap;
+            gap: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+    
+        .vocab-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .vocab-selector label {
+            font-weight: bold;
+            color: rgba(255,255,255,0.9);
+        }
+        .vocab-select {
+            padding: 8px 15px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 25px;
+            font-size: 1rem;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            cursor: pointer;
+        }
+        .vocab-select option {
+            background: #1a1b3e;
+            color: white;
+        }
+    
+        .pagination {
+            display: flex;
+            gap: 5px;
+        }
+        .pagination button {
+            padding: 8px 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .pagination button:hover:not(:disabled) {
+            background: #764ba2;
+        }
+        .pagination button:disabled {
+            background: rgba(255,255,255,0.1);
+            cursor: not-allowed;
+            color: rgba(255,255,255,0.4);
+        }
+    
+        .page-info {
+            font-weight: bold;
+            color: rgba(255,255,255,0.9);
+        }
+    
+        .search-box {
+            padding: 8px 15px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 25px;
+            font-size: 1rem;
+            width: 250px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+        .search-box::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+    
+        .words-container {
+            padding: 20px;
+            min-height: 500px;
+        }
+    
+        .word-card {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+    
+        .word-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .word-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: rgba(255,255,255,0.95);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+    
+        .speak-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        .speak-btn:hover {
+            background: #764ba2;
+        }
+    
+        .word-type {
+            background: #764ba2;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+    
+        .translation {
+            font-size: 1.2rem;
+            color: rgba(255,255,255,0.85);
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 5px;
+        }
+    
+        .phrases-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin: 20px 0 15px;
+            color: #667eea;
+        }
+    
+        .phrases-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+        }
+    
+        /* 强化边框 + 极低性能消耗 */
+        .phrase-item {
+            background: rgba(238, 242, 255, 0.08);
+            padding: 12px;
+            border-radius: 5px;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-left: 3px solid #667eea;
+        }
+        .phrase-en {
+            font-weight: bold;
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 5px;
+        }
+        .phrase-cn {
+            color: rgba(255,255,255,0.7);
+        }
+    
+        .no-results {
+            text-align: center;
+            padding: 50px 20px;
+            color: rgba(255,255,255,0.6);
+            font-size: 1.2rem;
+        }
+    
+        .loading {
+            text-align: center;
+            padding: 50px 20px;
+            color: rgba(255,255,255,0.6);
+        }
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-left-color: #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+    
+        footer {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255,255,255,0.05);
+            color: rgba(255,255,255,0.5);
+            font-size: 0.9rem;
+        }
+    
+        @keyframes spin { to { transform: rotate(360deg); } }
+    
+        @media (max-width: 768px) {
+            .controls {flex-direction: column;align-items: stretch;}
+            .pagination {justify-content: center;}
+            .search-box {width: 100%;}
+            .phrases-grid {grid-template-columns: 1fr;}
+            .word-header {flex-direction: column;align-items: flex-start;}
+            .vocab-selector {width: 100%;justify-content: space-between;}
+            .vocab-select {flex: 1;}
+            .float-btn {
+                padding: 8px 14px;
+                font-size: 13px;
+                top: 10px;
+                right: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 右上角悬浮跳转按钮 -->
+    <a href="test.html" target="_blank" class="float-btn">测试</a>
+
+    <div class="stars" id="stars"></div>
+
+    <div class="container">
+        <header>
+            <h1>英语词汇表</h1>
+            <div class="stats">共 <span id="totalWords">0</span> 个单词 · <span id="totalPages">0</span> 页</div>
+        </header>
+
+        <div class="controls">
+            <div class="vocab-selector">
+                <label for="vocabSelect">选择词库：</label>
+                <select id="vocabSelect" class="vocab-select">
+                    <option value="1-初中-顺序.json">初中词汇</option>
+                    <option value="2-高中-顺序.json">高中词汇</option>
+                    <option value="3-CET4-顺序.json">四级词汇</option>
+                    <option value="4-CET6-顺序.json">六级词汇</option>
+                    <option value="5-考研-顺序.json">考研词汇</option>
+                    <option value="6-托福-顺序.json">托福词汇</option>
+                    <option value="7-SAT-顺序.json">SAT词汇</option>
+                </select>
+            </div>
+
+            <input type="text" class="search-box" id="searchBox" placeholder="搜索单词...">
+            <div class="page-info">第 <span id="currentPage">1</span> 页 / 共 <span id="totalPageCount">0</span> 页</div>
+            <div class="pagination" id="pagination">
+                <button id="firstPage">&laquo; 首页</button>
+                <button id="prevPage">&lt; 上一页</button>
+                <button id="nextPage">下一页 &gt;</button>
+                <button id="lastPage">末页 &raquo;</button>
+            </div>
+        </div>
+
+        <div class="words-container" id="wordsContainer">
+            <div class="loading">
+                <div class="loading-spinner"></div>
+                <p>正在加载词汇数据...</p>
+            </div>
+        </div>
+
+        <footer>
+            <p>英语词汇学习系统</p>
+        </footer>
+    </div>
+
+    <script>
+        const CONFIG = {
+            WORDS_PER_PAGE: 20,
+            MAX_PHRASES_PER_WORD: 5,
+            SEARCH_DEBOUNCE_DELAY: 300,
+            LAZY_LOAD_BUFFER: 10
+        };
+    
+        const appState = {
+            allWords: [],
+            currentPage: 1,
+            filteredWords: [],
+            isLoading: true,
+            searchQuery: '',
+            currentVocabFile: '1-初中-顺序.json'
+        };
+    
+        const elements = {};
+    
+        function initApp() {
+            cacheDOMElements();
+            // 关闭所有星空动画 → 性能起飞
+            // createStars();
+            // setInterval(()=>Math.random()<0.3&&createShootingStar(),4000);
+            
+            loadData(appState.currentVocabFile).then(()=>{
+                updateStats();
+                renderPage(1);
+                setupEventListeners();
+                appState.isLoading = false;
+            }).catch(e=>{
+                console.error(e);
+                showError('数据加载失败');
+                appState.isLoading = false;
+            });
+        }
+    
+        function cacheDOMElements() {
+            elements.wordsContainer = document.getElementById('wordsContainer');
+            elements.searchBox = document.getElementById('searchBox');
+            elements.currentPageSpan = document.getElementById('currentPage');
+            elements.totalPageCountSpan = document.getElementById('totalPageCount');
+            elements.totalWordsSpan = document.getElementById('totalWords');
+            elements.totalPagesSpan = document.getElementById('totalPages');
+            elements.vocabSelect = document.getElementById('vocabSelect');
+        }
+    
+        function speakWord(word) {
+            if('speechSynthesis' in window){
+                window.speechSynthesis.cancel();
+                const u = new SpeechSynthesisUtterance(word);
+                u.lang='en-US';u.rate=0.9;
+                window.speechSynthesis.speak(u);
+            }
+        }
+    
+        async function loadData(vocabFile) {
+            try {
+                const res = await fetch(vocabFile, { cache: "force-cache" });
+                const data = await res.json();
+                appState.allWords = data.map(item=>({
+                    word: item.word||'',
+                    translations: (item.translations||[]).map(t=>({
+                        translation: t.translation||'',
+                        type: t.type||''
+                    })),
+                    phrases: (item.phrases||[]).slice(0,5).map(p=>({
+                        phrase: p.phrase||'',
+                        translation: p.translation||''
+                    }))
+                }));
+                appState.filteredWords = [...appState.allWords];
+                appState.currentVocabFile = vocabFile;
+            } catch(e){
+                console.error(e);
+                throw e;
+            }
+        }
+    
+        async function switchVocab(file) {
+            if(appState.isLoading) return;
+            appState.isLoading=true; showLoading();
+            try{
+                await loadData(file);
+                elements.searchBox.value=''; appState.searchQuery='';
+                appState.filteredWords=[...appState.allWords];
+                updateStats(); renderPage(1);
+            }catch{e=>showError('加载失败')}
+            finally{appState.isLoading=false;}
+        }
+    
+        function updateStats() {
+            const t = Math.ceil(appState.filteredWords.length/CONFIG.WORDS_PER_PAGE)||1;
+            elements.totalWordsSpan.textContent = appState.allWords.length;
+            elements.totalPagesSpan.textContent = t;
+            elements.totalPageCountSpan.textContent = t;
+        }
+    
+        function renderPage(page) {
+            const total = Math.ceil(appState.filteredWords.length/CONFIG.WORDS_PER_PAGE)||1;
+            if(page<1||page>total) return;
+            appState.currentPage = page;
+            const s=(page-1)*CONFIG.WORDS_PER_PAGE;
+            const e=s+CONFIG.WORDS_PER_PAGE;
+            const list=appState.filteredWords.slice(s,e);
+            showLoading();
+            requestAnimationFrame(()=>{
+                renderWords(list);
+                updatePageInfo();
+                updatePaginationButtons();
+            });
+        }
+    
+        function renderWords(words) {
+            if(words.length===0){elements.wordsContainer.innerHTML='<div class="no-results">没有找到匹配的单词</div>';return;}
+            let h='';
+            words.forEach(w=>{
+                const safe=w.word.replace(/'/g,"\\'");
+                h+=`
+                <div class="word-card">
+                    <div class="word-header">
+                        <div class="word-title">
+                            ${w.word}
+                            <button class="speak-btn" onclick="speakWord('${safe}')">🔊</button>
+                        </div>
+                        ${w.translations?.[0]?.type?`<div class="word-type">${w.translations[0].type}</div>`:''}
+                    </div>
+                    <div class="translation">${w.translations?.[0]?.translation||'暂无翻译'}</div>
+                    ${w.phrases?.length?`
+                    <div class="phrases-title">常用短语</div>
+                    <div class="phrases-grid">
+                        ${w.phrases.map(p=>`
+                        <div class="phrase-item">
+                            <div class="phrase-en">${p.phrase}</div>
+                            <div class="phrase-cn">${p.translation}</div>
+                        </div>`).join('')}
+                    </div>`:''}
+                </div>`;
+            });
+            elements.wordsContainer.innerHTML=h;
+        }
+    
+        function showLoading(){elements.wordsContainer.innerHTML='<div class="loading"><div class="loading-spinner"></div><p>加载中...</p></div>';}
+        function showError(m){elements.wordsContainer.innerHTML=`<div class="no-results">${m}</div>`;}
+        function updatePageInfo(){elements.currentPageSpan.textContent=appState.currentPage;}
+        function updatePaginationButtons(){
+            const t=Math.ceil(appState.filteredWords.length/CONFIG.WORDS_PER_PAGE)||1;
+            document.getElementById('firstPage').disabled=appState.currentPage===1;
+            document.getElementById('prevPage').disabled=appState.currentPage===1;
+            document.getElementById('nextPage').disabled=appState.currentPage>=t;
+            document.getElementById('lastPage').disabled=appState.currentPage>=t;
+        }
+    
+        function setupEventListeners() {
+            elements.vocabSelect.onchange=e=>switchVocab(e.target.value);
+            document.getElementById('firstPage').onclick=()=>renderPage(1);
+            document.getElementById('prevPage').onclick=()=>renderPage(appState.currentPage-1);
+            document.getElementById('nextPage').onclick=()=>renderPage(appState.currentPage+1);
+            document.getElementById('lastPage').onclick=()=>renderPage(Math.ceil(appState.filteredWords.length/CONFIG.WORDS_PER_PAGE)||1);
+            
+            let timer;
+            elements.searchBox.oninput=()=>{
+                clearTimeout(timer);
+                timer=setTimeout(()=>{
+                    const q=elements.searchBox.value.trim().toLowerCase();
+                    if(!q){appState.filteredWords=[...appState.allWords];}
+                    else{
+                        appState.filteredWords=appState.allWords.filter(w=>
+                            w.word.toLowerCase().includes(q)||
+                            w.translations?.some(t=>t.translation.includes(q))
+                        );
+                    }
+                    updateStats(); renderPage(1);
+                },300);
+            };
+        }
+    
+        document.addEventListener('DOMContentLoaded',initApp);
+    </script>
+</body>
+</html>

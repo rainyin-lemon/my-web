@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>随机单词卡片 - 英语词汇学习</title>
+		<style>
+			* {
+				margin: 0;
+				padding: 0;
+				box-sizing: border-box;
+			}
+
+			/* 星空背景基础样式 */
+			body {
+				font-family: "Segoe UI", Roboto, sans-serif;
+				background: linear-gradient(135deg, #0c0e2a, #1a1b3e, #2d2b5e);
+				min-height: 100vh;
+				padding: 20px;
+				overflow-x: hidden;
+			}
+
+			/* 星空容器 */
+			.stars {
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				z-index: -1;
+			}
+			
+			.star {
+				position: absolute;
+				background-color: white;
+				border-radius: 50%;
+				box-shadow: 0 0 3px rgba(255, 255, 255, 0.5);
+			}
+			
+			.star.small {
+				animation: twinkle-small 3s infinite alternate ease-in-out;
+			}
+			
+			.star.medium {
+				animation: twinkle-medium 2.5s infinite alternate ease-in-out;
+			}
+			
+			.star.large {
+				animation: twinkle-large 4s infinite alternate ease-in-out;
+			}
+			
+			/* 流星样式 */
+			.shooting-star {
+				position: absolute;
+				width: 100px;
+				height: 2px;
+				background: linear-gradient(90deg, rgba(255, 255, 255, 0), white, rgba(255, 255, 255, 0));
+				border-radius: 2px;
+				animation: shooting 3s linear;
+				opacity: 0;
+				pointer-events: none;
+			}
+			
+			/* 星星脉动效果 */
+			.star.pulse {
+				animation: pulse 2s infinite ease-in-out;
+			}
+
+			.container {
+				max-width: 800px;
+				margin: 0 auto;
+				position: relative;
+				z-index: 1;
+			}
+
+			/* 顶部栏 */
+			.top-bar {
+				background: rgba(255, 255, 255, 0.1);
+				backdrop-filter: blur(10px);
+				border: 1px solid rgba(255, 255, 255, 0.2);
+				padding: 16px 20px;
+				border-radius: 16px;
+				margin-bottom: 20px;
+				box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+				display: flex;
+				flex-wrap: wrap;
+				align-items: center;
+				gap: 12px;
+				justify-content: space-between;
+				color: white;
+			}
+
+			.top-bar select,
+			.top-bar button {
+				padding: 10px 14px;
+				background: rgba(255, 255, 255, 0.1);
+				border: 1px solid rgba(255, 255, 255, 0.2);
+				color: white;
+				border-radius: 10px;
+				font-size: 14px;
+				outline: none;
+			}
+
+			.top-bar select option {
+				background: #1a1b3e;
+				color: white;
+			}
+
+			.top-bar button {
+				background: rgba(91, 122, 255, 0.8);
+				color: white;
+				border: none;
+				cursor: pointer;
+				transition: 0.2s;
+			}
+
+			.top-bar button:hover {
+				background: rgba(72, 99, 224, 0.9);
+				transform: translateY(-2px);
+			}
+
+			/* 单词卡片 */
+			.card {
+				background: rgba(255, 255, 255, 0.1);
+				backdrop-filter: blur(10px);
+				border: 1px solid rgba(255, 255, 255, 0.2);
+				border-radius: 20px;
+				padding: 40px 30px;
+				text-align: center;
+				box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+				margin-bottom: 20px;
+				transition: 0.3s;
+				color: white;
+			}
+
+			.card:hover {
+				transform: translateY(-4px);
+				box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+			}
+
+			.word {
+				font-size: 42px;
+				font-weight: bold;
+				color: #ffffff;
+				margin-bottom: 20px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				gap: 16px;
+				text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+			}
+
+			.speak-btn {
+				width: 44px;
+				height: 44px;
+				border-radius: 50%;
+				background: rgba(91, 122, 255, 0.8);
+				color: white;
+				border: none;
+				font-size: 18px;
+				cursor: pointer;
+				transition: 0.2s;
+				box-shadow: 0 0 10px rgba(91, 122, 255, 0.5);
+			}
+
+			.speak-btn:hover {
+				background: rgba(72, 99, 224, 0.9);
+				transform: scale(1.1);
+			}
+
+			.type {
+				display: inline-block;
+				padding: 6px 14px;
+				background: rgba(91, 122, 255, 0.2);
+				color: #a0d2ff;
+				border-radius: 30px;
+				font-size: 14px;
+				margin-bottom: 20px;
+				border: 1px solid rgba(91, 122, 255, 0.3);
+			}
+
+			.translation {
+				font-size: 22px;
+				color: #ffffff;
+				line-height: 1.6;
+				padding: 16px;
+				background: rgba(255, 255, 255, 0.05);
+				border-radius: 12px;
+				transition: 0.3s;
+				border: 1px solid rgba(255, 255, 255, 0.1);
+			}
+
+			.translation.hidden {
+				color: transparent;
+				background: rgba(255, 255, 255, 0.02);
+				user-select: none;
+			}
+
+			.phrases {
+				margin-top: 20px;
+				text-align: left;
+				display: none;
+			}
+
+			.phrases.show {
+				display: block;
+			}
+
+			.phrase-item {
+				background: rgba(255, 255, 255, 0.05);
+				padding: 10px 14px;
+				border-radius: 10px;
+				margin-bottom: 8px;
+				font-size: 15px;
+				border: 1px solid rgba(255, 255, 255, 0.1);
+			}
+
+			.phrase-en {
+				font-weight: 600;
+				color: #ffffff;
+			}
+
+			.phrase-cn {
+				color: #a0d2ff;
+				margin-left: 8px;
+			}
+
+			/* 控制按钮 */
+			.controls {
+				display: flex;
+				gap: 14px;
+				justify-content: center;
+				margin-bottom: 10px;
+			}
+
+			.btn {
+				padding: 14px 28px;
+				border-radius: 14px;
+				font-size: 16px;
+				font-weight: 600;
+				border: none;
+				cursor: pointer;
+				transition: 0.2s;
+			}
+
+			.btn-primary {
+				background: rgba(91, 122, 255, 0.8);
+				color: white;
+				box-shadow: 0 4px 10px rgba(91, 122, 255, 0.3);
+			}
+
+			.btn-primary:hover {
+				background: rgba(72, 99, 224, 0.9);
+				transform: translateY(-2px);
+				box-shadow: 0 6px 15px rgba(91, 122, 255, 0.4);
+			}
+
+			.btn-secondary {
+				background: rgba(255, 255, 255, 0.1);
+				color: #ffffff;
+				border: 1px solid rgba(255, 255, 255, 0.2);
+			}
+
+			.btn-secondary:hover {
+				background: rgba(255, 255, 255, 0.2);
+				transform: translateY(-2px);
+			}
+
+			.empty {
+				padding: 60px 20px;
+				text-align: center;
+				color: #a0d2ff;
+				font-size: 16px;
+			}
+
+			/* 星空动画 */
+			@keyframes twinkle-small {
+				0%, 100% { opacity: 0.3; transform: scale(1); }
+				50% { opacity: 1; transform: scale(1.2); }
+			}
+			
+			@keyframes twinkle-medium {
+				0%, 100% { opacity: 0.4; transform: scale(1); }
+				50% { opacity: 1; transform: scale(1.3); }
+			}
+			
+			@keyframes twinkle-large {
+				0%, 100% { opacity: 0.5; transform: scale(1); }
+				50% { opacity: 1; transform: scale(1.4); }
+			}
+			
+			/* 流星动画 */
+			@keyframes shooting {
+				0% {
+					opacity: 0;
+					transform: translate(0, 0) rotate(45deg);
+				}
+				10% {
+					opacity: 1;
+				}
+				100% {
+					opacity: 0;
+					transform: translate(400px, 400px) rotate(45deg);
+				}
+			}
+			
+			/* 星星脉动效果 */
+			@keyframes pulse {
+				0%, 100% { 
+					opacity: 0.3;
+					box-shadow: 0 0 3px rgba(255, 255, 255, 0.3);
+				}
+				50% { 
+					opacity: 1;
+					box-shadow: 0 0 8px rgba(255, 255, 255, 0.8), 0 0 12px rgba(255, 255, 255, 0.4);
+				}
+			}
+
+			@media (max-width: 600px) {
+				.word {
+					font-size: 32px;
+					flex-direction: column;
+					gap: 10px;
+				}
+				.controls {
+					flex-direction: column;
+				}
+			}
+		</style>
+	</head>
+
+	<body>
+		<div class="stars" id="stars"></div>
+
+		<div class="container">
+			<div class="top-bar">
+				<select id="vocabSelect">
+					<option value="1-初中-顺序.json">初中词汇</option>
+					<option value="2-高中-顺序.json">高中词汇</option>
+					<option value="3-CET4-顺序.json">四级</option>
+					<option value="4-CET6-顺序.json">六级</option>
+					<option value="5-考研-顺序.json">考研</option>
+					<option value="6-托福-顺序.json">托福</option>
+					<option value="7-SAT-顺序.json">SAT</option>
+				</select>
+				<button id="toggleTranslate">显示/隐藏翻译</button>
+			</div>
+			
+			<div id="card" class="card">
+				<div class="word">
+					<span>loading...</span>
+					<button class="speak-btn">🔊</button>
+				</div>
+				<div class="type"></div>
+				<div class="translation hidden"></div>
+				<div class="phrases"></div>
+			</div>
+			
+			<div class="controls">
+				<button class="btn btn-primary" id="randomWord">🎲 随机单词</button>
+				<button class="btn btn-secondary" id="prevWord">← 上一个</button>
+				<button class="btn btn-secondary" id="nextWord">下一个 →</button>
+			</div>
+		</div>
+
+		<script>
+			const CONFIG = { MAX_PHRASES: 2 };
+			const app = {
+				list: [], current: null, index: 0,
+				showTranslate: false, vocabFile: "1-初中-顺序.json"
+			};
+
+			const $ = s => document.querySelector(s);
+			const card = $("#card");
+			const wordEl = card.querySelector(".word span");
+			const speakBtn = card.querySelector(".speak-btn");
+			const typeEl = card.querySelector(".type");
+			const transEl = card.querySelector(".translation");
+			const phrasesEl = card.querySelector(".phrases");
+
+			// 朗读
+			function speak(word) {
+				if ("speechSynthesis" in window) {
+					window.speechSynthesis.cancel();
+					const u = new SpeechSynthesisUtterance(word);
+					u.lang = "en-US"; u.rate = 0.9;
+					window.speechSynthesis.speak(u);
+				}
+			}
+
+			// 渲染单词
+			function render(word) {
+				if (!word) { card.innerHTML = '<div class="empty">暂无单词</div>'; return; }
+				app.current = word;
+				wordEl.textContent = word.word;
+				typeEl.textContent = word.translations?.[0]?.type || "";
+				transEl.textContent = word.translations?.[0]?.translation || "暂无翻译";
+				transEl.classList.toggle("hidden", !app.showTranslate);
+				phrasesEl.classList.toggle("show", app.showTranslate);
+				const phrases = (word.phrases || []).slice(0, CONFIG.MAX_PHRASES);
+				phrasesEl.innerHTML = phrases.map(p => `
+				<div class="phrase-item">
+					<span class="phrase-en">${p.phrase}</span>
+					<span class="phrase-cn">${p.translation}</span>
+				</div>`).join("");
+			}
+
+			function random() {
+				if (app.list.length === 0) return;
+				app.index = Math.floor(Math.random() * app.list.length);
+				render(app.list[app.index]);
+			}
+			function prev() {
+				if (app.list.length === 0) return;
+				app.index = (app.index - 1 + app.list.length) % app.list.length;
+				render(app.list[app.index]);
+			}
+			function next() {
+				if (app.list.length === 0) return;
+				app.index = (app.index + 1) % app.list.length;
+				render(app.list[app.index]);
+			}
+
+			// 加载词库
+			async function load(file) {
+				try {
+					const res = await fetch(file, { cache: "force-cache" });
+					const data = await res.json();
+					app.list = data.map(item => ({
+						word: item.word || "",
+						translations: item.translations || [],
+						phrases: (item.phrases || []).slice(0, CONFIG.MAX_PHRASES)
+					}));
+					random();
+				} catch (e) {
+					console.error(e);
+					card.innerHTML = '<div class="empty">加载失败，请检查文件</div>';
+				}
+			}
+
+			// 事件
+			$("#randomWord").onclick = random;
+			$("#prevWord").onclick = prev;
+			$("#nextWord").onclick = next;
+			speakBtn.onclick = () => app.current && speak(app.current.word);
+
+			$("#toggleTranslate").onclick = () => {
+				app.showTranslate = !app.showTranslate;
+				transEl.classList.toggle("hidden", !app.showTranslate);
+				phrasesEl.classList.toggle("show", app.showTranslate);
+			};
+
+			$("#vocabSelect").addEventListener("change", e => {
+				app.vocabFile = e.target.value;
+				load(app.vocabFile);
+			});
+
+			// ==================== 优化后的星空/流星 ====================
+			function createStars() {
+				const starsContainer = document.getElementById('stars');
+				starsContainer.innerHTML = '';
+				const starCount = 200;
+				for (let i = 0; i < starCount; i++) {
+					const star = document.createElement('div');
+					const size = Math.random() * 4 + 0.5;
+					star.style.width = star.style.height = size + 'px';
+					star.style.left = Math.random() * 100 + '%';
+					star.style.top = Math.random() * 100 + '%';
+					star.style.opacity = Math.random() * 0.6 + 0.3;
+
+					if (Math.random() < 0.1) star.style.backgroundColor = 'rgb(180,220,255)';
+					else if (Math.random() < 0.1) star.style.backgroundColor = 'rgb(255,255,180)';
+					else star.style.backgroundColor = 'white';
+
+					if (size < 1.5) star.className = 'star small';
+					else if (size < 3) star.className = 'star medium';
+					else star.className = 'star large';
+
+					star.style.animationDelay = Math.random() * 5 + 's';
+					star.style.animationDuration = Math.random() * 2 + 1.5 + 's';
+					if (Math.random() < 0.2) star.classList.add('pulse');
+					starsContainer.appendChild(star);
+				}
+			}
+
+			// ✅ 流星优化：只从上半区域生成，向下飞
+			function createShootingStar() {
+				const starsContainer = document.getElementById('stars');
+				const s = document.createElement('div');
+				s.className = 'shooting-star';
+
+				// 强制从上半屏 0%~35% 区域出生
+				const startX = Math.random() * 100;
+				const startY = Math.random() * 35;
+				s.style.left = startX + '%';
+				s.style.top = startY + '%';
+
+				// 角度更自然：斜向下
+				const angle = Math.random() * 20 + 30;
+				s.style.transform = `rotate(${angle}deg)`;
+
+				const duration = Math.random() * 2 + 2;
+				s.style.animationDuration = duration + 's';
+				const width = Math.random() * 100 + 60;
+				s.style.width = width + 'px';
+
+				// 颜色
+				if (Math.random() < 0.3) {
+					s.style.background = 'linear-gradient(90deg,rgba(255,255,255,0),rgba(100,200,255,1),rgba(255,255,255,0))';
+				} else if (Math.random() < 0.3) {
+					s.style.background = 'linear-gradient(90deg,rgba(255,255,255,0),rgba(100,255,200,1),rgba(255,255,255,0))';
+				}
+
+				starsContainer.appendChild(s);
+				setTimeout(() => s.remove(), duration * 1000);
+			}
+
+			// 启动
+			window.addEventListener("DOMContentLoaded", () => {
+				createStars();
+				setInterval(() => Math.random() < 0.5 && createShootingStar(), 4000);
+				load(app.vocabFile);
+			});
+		</script>
+	</body>
+</html>
