@@ -394,10 +394,10 @@
     
         function initApp() {
             cacheDOMElements();
-            // 关闭所有星空动画 → 性能起飞
-            // createStars();
-            // setInterval(()=>Math.random()<0.3&&createShootingStar(),4000);
             
+            // 🔥 页面一开始就禁用所有按钮，防止乱点
+            setControlsDisabled(true);
+
             loadData(appState.currentVocabFile).then(()=>{
                 updateStats();
                 renderPage(1);
