@@ -114,10 +114,7 @@
 				transition: 0.2s;
 			}
 
-			.top-bar button:hover {
-				background: rgba(72, 99, 224, 0.9);
-				transform: translateY(-2px);
-			}
+
 
 			/* 单词卡片 */
 			.card {
@@ -134,7 +131,6 @@
 			}
 
 			.card:hover {
-				transform: translateY(-4px);
 				box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
 			}
 
@@ -273,6 +269,12 @@
 				font-size: 16px;
 			}
 
+			/* 加载中按钮禁用样式 */
+			button:disabled, select:disabled {
+				opacity: 0.5 !important;
+				cursor: not-allowed !important;
+			}
+
 			/* 星空动画 */
 			@keyframes twinkle-small {
 				0%, 100% { opacity: 0.3; transform: scale(1); }
@@ -367,7 +369,8 @@
 			const CONFIG = { MAX_PHRASES: 2 };
 			const app = {
 				list: [], current: null, index: 0,
-				showTranslate: false, vocabFile: "1-初中-顺序.json"
+				showTranslate: false, vocabFile: "1-初中-顺序.json",
+				isLoading: false
 			};
 
 			const $ = s => document.querySelector(s);
@@ -378,8 +381,19 @@
 			const transEl = card.querySelector(".translation");
 			const phrasesEl = card.querySelector(".phrases");
 
+			// 禁用/启用所有按钮
+			function setAllControlsDisabled(disabled) {
+				$("#randomWord").disabled = disabled;
+				$("#prevWord").disabled = disabled;
+				$("#nextWord").disabled = disabled;
+				$("#toggleTranslate").disabled = disabled;
+				$("#vocabSelect").disabled = disabled;
+				speakBtn.disabled = disabled;
+			}
+
 			// 朗读
 			function speak(word) {
+				if (app.isLoading) return;
 				if ("speechSynthesis" in window) {
 					window.speechSynthesis.cancel();
 					const u = new SpeechSynthesisUtterance(word);
@@ -406,23 +420,30 @@
 			}
 
 			function random() {
-				if (app.list.length === 0) return;
+				if (app.list.length === 0 || app.isLoading) return;
 				app.index = Math.floor(Math.random() * app.list.length);
 				render(app.list[app.index]);
 			}
 			function prev() {
-				if (app.list.length === 0) return;
+				if (app.list.length === 0 || app.isLoading) return;
 				app.index = (app.index - 1 + app.list.length) % app.list.length;
 				render(app.list[app.index]);
 			}
 			function next() {
-				if (app.list.length === 0) return;
+				if (app.list.length === 0 || app.isLoading) return;
 				app.index = (app.index + 1) % app.list.length;
 				render(app.list[app.index]);
 			}
 
 			// 加载词库
 			async function load(file) {
+				app.isLoading = true;
+				setAllControlsDisabled(true);
+				wordEl.textContent = "loading...";
+				typeEl.textContent = "";
+				transEl.textContent = "";
+				phrasesEl.innerHTML = "";
+
 				try {
 					const res = await fetch(file, { cache: "force-cache" });
 					const data = await res.json();
@@ -431,20 +452,27 @@
 						translations: item.translations || [],
 						phrases: (item.phrases || []).slice(0, CONFIG.MAX_PHRASES)
 					}));
-					random();
+
+					// 加载完成
+					app.isLoading = false;
+					setAllControlsDisabled(false);
+					random(); // 确保加载完再显示单词
 				} catch (e) {
 					console.error(e);
 					card.innerHTML = '<div class="empty">加载失败，请检查文件</div>';
+					app.isLoading = false;
+					setAllControlsDisabled(false);
 				}
 			}
 
-			// 事件
+			// 事件绑定
 			$("#randomWord").onclick = random;
 			$("#prevWord").onclick = prev;
 			$("#nextWord").onclick = next;
-			speakBtn.onclick = () => app.current && speak(app.current.word);
+			speakBtn.onclick = () => { if(app.current) speak(app.current.word); };
 
 			$("#toggleTranslate").onclick = () => {
+				if (app.isLoading) return;
 				app.showTranslate = !app.showTranslate;
 				transEl.classList.toggle("hidden", !app.showTranslate);
 				phrasesEl.classList.toggle("show", app.showTranslate);
@@ -455,7 +483,7 @@
 				load(app.vocabFile);
 			});
 
-			// ==================== 优化后的星空/流星 ====================
+			// ==================== 星空 ====================
 			function createStars() {
 				const starsContainer = document.getElementById('stars');
 				starsContainer.innerHTML = '';
@@ -483,34 +511,20 @@
 				}
 			}
 
-			// ✅ 流星优化：只从上半区域生成，向下飞
 			function createShootingStar() {
 				const starsContainer = document.getElementById('stars');
 				const s = document.createElement('div');
 				s.className = 'shooting-star';
-
-				// 强制从上半屏 0%~35% 区域出生
 				const startX = Math.random() * 100;
 				const startY = Math.random() * 35;
 				s.style.left = startX + '%';
 				s.style.top = startY + '%';
-
-				// 角度更自然：斜向下
 				const angle = Math.random() * 20 + 30;
 				s.style.transform = `rotate(${angle}deg)`;
-
 				const duration = Math.random() * 2 + 2;
 				s.style.animationDuration = duration + 's';
 				const width = Math.random() * 100 + 60;
 				s.style.width = width + 'px';
-
-				// 颜色
-				if (Math.random() < 0.3) {
-					s.style.background = 'linear-gradient(90deg,rgba(255,255,255,0),rgba(100,200,255,1),rgba(255,255,255,0))';
-				} else if (Math.random() < 0.3) {
-					s.style.background = 'linear-gradient(90deg,rgba(255,255,255,0),rgba(100,255,200,1),rgba(255,255,255,0))';
-				}
-
 				starsContainer.appendChild(s);
 				setTimeout(() => s.remove(), duration * 1000);
 			}
