@@ -71,10 +71,10 @@
             background: rgba(255, 255, 255, 0.08);
             border-radius: 10px;
             box-shadow: none;
-            overflow: hidden;
             border: 1px solid rgba(255,255,255,0.1);
             position: relative;
             z-index: 1;
+			
         }
     
         header {
@@ -99,10 +99,17 @@
             justify-content: space-between;
             align-items: center;
             padding: 20px;
-            background: rgba(255,255,255,0.05);
+            /* 👇 核心：模糊玻璃背景 */
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
             flex-wrap: wrap;
             gap: 10px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            /* 👇 固定顶部不变 */
+            position: sticky;
+            top: 0;
+            z-index: 999;
         }
     
         .vocab-selector {
@@ -362,7 +369,7 @@
 
     <script>
         const CONFIG = {
-            WORDS_PER_PAGE: 20,
+            WORDS_PER_PAGE: 10,
             MAX_PHRASES_PER_WORD: 5,
             SEARCH_DEBOUNCE_DELAY: 300,
             LAZY_LOAD_BUFFER: 10
@@ -378,6 +385,9 @@
         };
     
         const elements = {};
+
+        // 缓存所有需要禁用的按钮
+        let controlButtons = {};
     
         function initApp() {
             cacheDOMElements();
@@ -390,10 +400,13 @@
                 renderPage(1);
                 setupEventListeners();
                 appState.isLoading = false;
+                // 加载完成启用按钮
+                setControlsDisabled(false);
             }).catch(e=>{
                 console.error(e);
                 showError('数据加载失败');
                 appState.isLoading = false;
+                setControlsDisabled(false);
             });
         }
     
@@ -405,6 +418,24 @@
             elements.totalWordsSpan = document.getElementById('totalWords');
             elements.totalPagesSpan = document.getElementById('totalPages');
             elements.vocabSelect = document.getElementById('vocabSelect');
+
+            // 缓存翻页按钮
+            controlButtons.firstPage = document.getElementById('firstPage');
+            controlButtons.prevPage = document.getElementById('prevPage');
+            controlButtons.nextPage = document.getElementById('nextPage');
+            controlButtons.lastPage = document.getElementById('lastPage');
+        }
+
+        // 核心：禁用/启用所有控制按钮（词库切换+翻页+搜索）
+        function setControlsDisabled(disabled) {
+            // 禁用词库下拉框
+            elements.vocabSelect.disabled = disabled;
+            // 禁用搜索框
+            elements.searchBox.disabled = disabled;
+            // 禁用所有翻页按钮
+            Object.values(controlButtons).forEach(btn => {
+                btn.disabled = disabled;
+            });
         }
     
         function speakWord(word) {
@@ -441,14 +472,21 @@
     
         async function switchVocab(file) {
             if(appState.isLoading) return;
-            appState.isLoading=true; showLoading();
+            appState.isLoading=true; 
+            // 加载前禁用所有按钮
+            setControlsDisabled(true);
+            showLoading();
             try{
                 await loadData(file);
                 elements.searchBox.value=''; appState.searchQuery='';
                 appState.filteredWords=[...appState.allWords];
                 updateStats(); renderPage(1);
             }catch{e=>showError('加载失败')}
-            finally{appState.isLoading=false;}
+            finally{
+                appState.isLoading=false;
+                // 加载完成启用按钮
+                setControlsDisabled(false);
+            }
         }
     
         function updateStats() {
@@ -507,18 +545,18 @@
         function updatePageInfo(){elements.currentPageSpan.textContent=appState.currentPage;}
         function updatePaginationButtons(){
             const t=Math.ceil(appState.filteredWords.length/CONFIG.WORDS_PER_PAGE)||1;
-            document.getElementById('firstPage').disabled=appState.currentPage===1;
-            document.getElementById('prevPage').disabled=appState.currentPage===1;
-            document.getElementById('nextPage').disabled=appState.currentPage>=t;
-            document.getElementById('lastPage').disabled=appState.currentPage>=t;
+            controlButtons.firstPage.disabled=appState.currentPage===1;
+            controlButtons.prevPage.disabled=appState.currentPage===1;
+            controlButtons.nextPage.disabled=appState.currentPage>=t;
+            controlButtons.lastPage.disabled=appState.currentPage>=t;
         }
-    
+		
         function setupEventListeners() {
             elements.vocabSelect.onchange=e=>switchVocab(e.target.value);
-            document.getElementById('firstPage').onclick=()=>renderPage(1);
-            document.getElementById('prevPage').onclick=()=>renderPage(appState.currentPage-1);
-            document.getElementById('nextPage').onclick=()=>renderPage(appState.currentPage+1);
-            document.getElementById('lastPage').onclick=()=>renderPage(Math.ceil(appState.filteredWords.length/CONFIG.WORDS_PER_PAGE)||1);
+            controlButtons.firstPage.onclick=()=>renderPage(1);
+            controlButtons.prevPage.onclick=()=>renderPage(appState.currentPage-1);
+            controlButtons.nextPage.onclick=()=>renderPage(appState.currentPage+1);
+            controlButtons.lastPage.onclick=()=>renderPage(Math.ceil(appState.filteredWords.length/CONFIG.WORDS_PER_PAGE)||1);
             
             let timer;
             elements.searchBox.oninput=()=>{
