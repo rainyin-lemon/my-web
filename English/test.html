@@ -324,8 +324,12 @@
 					flex-direction: column;
 					gap: 10px;
 				}
+
+			}
+			@media (max-width: 768px) {
 				.controls {
-					flex-direction: column;
+					position: sticky;
+					bottom: 0;
 				}
 			}
 		</style>
@@ -404,19 +408,45 @@
 
 			// 渲染单词
 			function render(word) {
-				if (!word) { card.innerHTML = '<div class="empty">暂无单词</div>'; return; }
+				// 先恢复卡片原始结构（修复加载失败后结构被替换的问题）
+				card.innerHTML = `
+				<div class="word">
+					<span>loading...</span>
+					<button class="speak-btn">🔊</button>
+				</div>
+				<div class="type"></div>
+				<div class="translation hidden"></div>
+				<div class="phrases"></div>
+				`;
+				// 重新获取元素
+				const newWordEl = card.querySelector(".word span");
+				const newSpeakBtn = card.querySelector(".speak-btn");
+				const newTypeEl = card.querySelector(".type");
+				const newTransEl = card.querySelector(".translation");
+				const newPhrasesEl = card.querySelector(".phrases");
+
+				if (!word) {
+					newWordEl.textContent = "暂无单词";
+					newTypeEl.textContent = "";
+					newTransEl.textContent = "";
+					newPhrasesEl.innerHTML = "";
+					return;
+				}
 				app.current = word;
-				wordEl.textContent = word.word;
-				typeEl.textContent = word.translations?.[0]?.type || "";
-				transEl.textContent = word.translations?.[0]?.translation || "暂无翻译";
-				transEl.classList.toggle("hidden", !app.showTranslate);
-				phrasesEl.classList.toggle("show", app.showTranslate);
+				newWordEl.textContent = word.word;
+				newTypeEl.textContent = word.translations?.[0]?.type || "";
+				newTransEl.textContent = word.translations?.[0]?.translation || "暂无翻译";
+				newTransEl.classList.toggle("hidden", !app.showTranslate);
+				newPhrasesEl.classList.toggle("show", app.showTranslate);
 				const phrases = (word.phrases || []).slice(0, CONFIG.MAX_PHRASES);
-				phrasesEl.innerHTML = phrases.map(p => `
+				newPhrasesEl.innerHTML = phrases.map(p => `
 				<div class="phrase-item">
 					<span class="phrase-en">${p.phrase}</span>
 					<span class="phrase-cn">${p.translation}</span>
 				</div>`).join("");
+
+				// 重新绑定朗读按钮
+				newSpeakBtn.onclick = () => { if(app.current) speak(app.current.word); };
 			}
 
 			function random() {
@@ -439,13 +469,11 @@
 			async function load(file) {
 				app.isLoading = true;
 				setAllControlsDisabled(true);
-				wordEl.textContent = "loading...";
-				typeEl.textContent = "";
-				transEl.textContent = "";
-				phrasesEl.innerHTML = "";
+				render(null); // 清空卡片，显示loading
 
 				try {
 					const res = await fetch(file, { cache: "force-cache" });
+					if (!res.ok) throw new Error("文件加载失败");
 					const data = await res.json();
 					app.list = data.map(item => ({
 						word: item.word || "",
@@ -456,10 +484,12 @@
 					// 加载完成
 					app.isLoading = false;
 					setAllControlsDisabled(false);
-					random(); // 确保加载完再显示单词
+					random();
 				} catch (e) {
 					console.error(e);
-					card.innerHTML = '<div class="empty">加载失败，请检查文件</div>';
+					app.list = [];
+					render(null);
+					wordEl.textContent = "加载失败，请切换词库重试";
 					app.isLoading = false;
 					setAllControlsDisabled(false);
 				}
@@ -469,15 +499,17 @@
 			$("#randomWord").onclick = random;
 			$("#prevWord").onclick = prev;
 			$("#nextWord").onclick = next;
-			speakBtn.onclick = () => { if(app.current) speak(app.current.word); };
 
 			$("#toggleTranslate").onclick = () => {
-				if (app.isLoading) return;
+				if (app.isLoading || !app.current) return;
 				app.showTranslate = !app.showTranslate;
+				const transEl = card.querySelector(".translation");
+				const phrasesEl = card.querySelector(".phrases");
 				transEl.classList.toggle("hidden", !app.showTranslate);
 				phrasesEl.classList.toggle("show", app.showTranslate);
 			};
 
+			// 修复：切换词库一定触发重新加载
 			$("#vocabSelect").addEventListener("change", e => {
 				app.vocabFile = e.target.value;
 				load(app.vocabFile);
